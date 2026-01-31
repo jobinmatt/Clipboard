@@ -1,0 +1,12 @@
+# Build artifacts
+ClipboardHistory
+ClipboardHistory.app
+*.o
+output.log
+
+# System
+.DS_Store
+
+# User settings
+# Exclude user-specific plists if any, but keep Info.plist
+!Info.plist
