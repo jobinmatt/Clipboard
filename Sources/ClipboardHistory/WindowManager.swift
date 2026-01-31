@@ -24,8 +24,7 @@ class WindowManager: NSObject {
         newPanel.isOpaque = false
         newPanel.hasShadow = true
         newPanel.isMovableByWindowBackground = true 
-        
-        // Host SwiftUI content
+        newPanel.becomesKeyOnlyIfNeeded = true // Don't take focus unless required (e.g. for text input)
         let contentView = HistoryView()
         newPanel.contentView = NSHostingView(rootView: contentView)
         
@@ -60,64 +59,38 @@ class WindowManager: NSObject {
     }
     
     func activateLastApplication() {
-        if let lastApp = lastActiveApplication {
-            print("Activating previous app: \(lastApp.localizedName ?? "Unknown")")
-            // activateIgnoringOtherApps is deprecated in macOS 14
-            lastApp.activate(options: [.activateAllWindows])
-            lastActiveApplication = nil
-        } else {
-             print("No previous app found. Hiding self.")
-             // Fallback: Just hide our app
-             NSApp.hide(nil)
-        }
+        // In the Zero-Focus model, we don't need to restore focus because we never took it!
+        // We just hide ourselves.
+        NSApp.hide(nil)
     }
     
     private func showWindowNearCursor() {
         guard let panel = panel else { return }
-        let mouseLocation = NSEvent.mouseLocation
         
         // ... (Screen clamping logic) ...
-        // Get the screen where the mouse is
-        var screen: NSScreen?
-        for s in NSScreen.screens {
-            if NSMouseInRect(mouseLocation, s.frame, false) {
-                screen = s
-                break
-            }
-        }
-        let currentScreen = screen ?? NSScreen.main ?? NSScreen.screens[0]
+        let mouseLocation = NSEvent.mouseLocation
+        let currentScreen = NSScreen.screens.first { NSMouseInRect(mouseLocation, $0.frame, false) } ?? NSScreen.main ?? NSScreen.screens[0]
         
         var frame = panel.frame
         let screenFrame = currentScreen.visibleFrame
         
-        // Initial Position
         var newOriginX = mouseLocation.x
         var newOriginY = mouseLocation.y - frame.height
         
-        // Clamp Horizontal
-        if newOriginX + frame.width > screenFrame.maxX {
-            newOriginX = screenFrame.maxX - frame.width - 10
-        }
-        if newOriginX < screenFrame.minX {
-            newOriginX = screenFrame.minX + 10
-        }
-        
-        // Clamp Vertical
-        if newOriginY < screenFrame.minY {
-            newOriginY = mouseLocation.y + 10
-        }
+        if newOriginX + frame.width > screenFrame.maxX { newOriginX = screenFrame.maxX - frame.width - 10 }
+        if newOriginX < screenFrame.minX { newOriginX = screenFrame.minX + 10 }
+        if newOriginY < screenFrame.minY { newOriginY = mouseLocation.y + 10 }
         
         frame.origin = CGPoint(x: newOriginX, y: newOriginY)
         
-        print("Showing window at: \(frame)")
+        print("Showing non-activating window at: \(frame)")
         
         panel.setFrame(frame, display: true)
-        panel.makeKeyAndOrderFront(nil)
         
-        // Capture the previous app before taking focus
-        lastActiveApplication = NSWorkspace.shared.frontmostApplication
+        // orderFront instead of makeKeyAndOrderFront keeps the previous app active
+        panel.orderFront(nil)
         
-        NSApp.activate(ignoringOtherApps: true)
+        // We DO NOT call NSApp.activate anymore.
         
         // Setup click monitors
         setupClickMonitors()

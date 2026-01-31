@@ -59,12 +59,12 @@ struct HistoryView: View {
                                         isSelected: index == selectedIndex,
                                         onDelete: {
                                             clipboardManager.removeItem(item)
+                                        },
+                                        onTap: {
+                                            selectedIndex = index
+                                            pasteSelected()
                                         }
                                     )
-                                    .onTapGesture {
-                                        selectedIndex = index
-                                        pasteSelected()
-                                    }
                                     .id(index)
                                     
                                     // Separator
@@ -101,27 +101,34 @@ struct HistoryItemRow: View {
     let item: ClipboardItem
     let isSelected: Bool
     let onDelete: () -> Void
+    let onTap: () -> Void
     @State private var isHovering = false
     
     var body: some View {
         HStack {
-            if item.type == .image, let nsImage = item.image {
-                // Image Preview
-                Image(nsImage: nsImage)
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .frame(maxHeight: 80) // Limit height
-                    .padding(8)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-            } else if let text = item.text {
-                // Text Preview
-                Text(text)
-                    .lineLimit(6) // Allow more lines
-                    .font(.system(size: 13)) // Slightly smaller font for density
-                    .truncationMode(.tail)
-                    .padding(.vertical, 8)
-                    .padding(.horizontal, 10)
-                    .frame(maxWidth: .infinity, alignment: .leading)
+            Group {
+                if item.type == .image, let nsImage = item.image {
+                    // Image Preview
+                    Image(nsImage: nsImage)
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(maxHeight: 80) // Limit height
+                        .padding(8)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                } else if let text = item.text {
+                    // Text Preview
+                    Text(text)
+                        .lineLimit(6) // Allow more lines
+                        .font(.system(size: 13)) // Slightly smaller font for density
+                        .truncationMode(.tail)
+                        .padding(.vertical, 8)
+                        .padding(.horizontal, 10)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+            }
+            .contentShape(Rectangle())
+            .onTapGesture {
+                onTap()
             }
             
             // Delete Button
@@ -141,7 +148,6 @@ struct HistoryItemRow: View {
             }
         }
         .background(isSelected ? Color.accentColor.opacity(0.3) : (isHovering ? Color.secondary.opacity(0.1) : Color.clear))
-        .contentShape(Rectangle()) // Make full row clickable
         .onHover { inside in
             isHovering = inside
         }

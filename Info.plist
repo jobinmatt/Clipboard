@@ -14,5 +14,9 @@
     <string>AppIcon</string>
     <key>LSUIElement</key>
     <true/> <!-- Run as agent (no dock icon) -->
+    <key>NSAppleEventsUsageDescription</key>
+    <string>This app needs to send keyboard events to paste content into other applications.</string>
+    <key>NSAccessibilityUsageDescription</key>
+    <string>This app needs accessibility access to simulate the Command+V shortcut for pasting.</string>
 </dict>
 </plist>

@@ -4,11 +4,7 @@ class PasteManager {
     static let shared = PasteManager()
     
     func paste(item: ClipboardItem) {
-        // 1. Hide the window/app to return focus to the previous app
-        WindowManager.shared.closeWindow()
-        WindowManager.shared.activateLastApplication()
-        
-        // 2. Put content on clipboard
+        // 1. Put content on clipboard
         let pasteboard = NSPasteboard.general
         pasteboard.clearContents()
         
@@ -23,47 +19,46 @@ class PasteManager {
             }
         }
         
-        // 3. Sync clipboard manager to avoid duplicate entry
+        // 2. Sync clipboard manager to avoid duplicate entry
         ClipboardManager.shared.updateLastChangeCount()
         
-        // 4. Wait a bit for focus to switch back and clipboard to update
-        // Reduced delay for better responsiveness now that we explicitly activate the app
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+        // 3. Hide the window
+        WindowManager.shared.closeWindow()
+        
+        // 4. Paste immediately (with a tiny buffer to ensure click event finishes)
+        // Since we are non-activating, focus never left the target app!
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
             self.simulatePasteCommand()
         }
     }
     
     private func simulatePasteCommand() {
-        // Simulate Cmd+V
+        print("Executing Paste Simulation...")
         
-        let vKeyCode: CGKeyCode = 0x09 // kVK_ANSI_V
+        let source = CGEventSource(stateID: .hidSystemState)
+        let cmdKey: CGKeyCode = 0x37
+        let vKey: CGKeyCode = 0x09
         
-        // .combinedSessionState works better for user session events
-        guard let source = CGEventSource(stateID: .combinedSessionState) else {
-            print("Failed to create CGEventSource")
-            return
-        }
+        // 1. Command Down
+        let cmdDown = CGEvent(keyboardEventSource: source, virtualKey: cmdKey, keyDown: true)
         
-        // CMD down
-        let cmdDown = CGEvent(keyboardEventSource: source, virtualKey: 0x37, keyDown: true)
-        cmdDown?.flags = .maskCommand
-        cmdDown?.post(tap: .cghidEventTap)
-        
-        // V down
-        let vDown = CGEvent(keyboardEventSource: source, virtualKey: vKeyCode, keyDown: true)
+        // 2. V Down (with Command Flag)
+        let vDown = CGEvent(keyboardEventSource: source, virtualKey: vKey, keyDown: true)
         vDown?.flags = .maskCommand
-        vDown?.post(tap: .cghidEventTap)
         
-        // V up
-        let vUp = CGEvent(keyboardEventSource: source, virtualKey: vKeyCode, keyDown: false)
+        // 3. V Up (with Command Flag)
+        let vUp = CGEvent(keyboardEventSource: source, virtualKey: vKey, keyDown: false)
         vUp?.flags = .maskCommand
-        vUp?.post(tap: .cghidEventTap)
         
-        // CMD up
-        let cmdUp = CGEvent(keyboardEventSource: source, virtualKey: 0x37, keyDown: false)
-        cmdUp?.flags = [] // Clear flags
+        // 4. Command Up
+        let cmdUp = CGEvent(keyboardEventSource: source, virtualKey: cmdKey, keyDown: false)
+        
+        // Post events to the HID tap (hardware level)
+        cmdDown?.post(tap: .cghidEventTap)
+        vDown?.post(tap: .cghidEventTap)
+        vUp?.post(tap: .cghidEventTap)
         cmdUp?.post(tap: .cghidEventTap)
         
-        print("Paste Command Sent")
+        print("Paste events delivered.")
     }
 }
