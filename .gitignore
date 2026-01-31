@@ -1,6 +1,7 @@
 # Build artifacts
-ClipboardHistory
+/ClipboardHistory
 ClipboardHistory.app
+/test
 *.o
 output.log
 
