@@ -61,10 +61,10 @@ struct HistoryView: View {
                                             clipboardManager.removeItem(item)
                                         }
                                     )
-                                    .simultaneousGesture(TapGesture().onEnded {
+                                    .onTapGesture {
                                         selectedIndex = index
                                         pasteSelected()
-                                    })
+                                    }
                                     .id(index)
                                     
                                     // Separator

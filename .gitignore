@@ -8,6 +8,10 @@ output.log
 # System
 .DS_Store
 
+# SPM
+.build/
+.swiftpm/
+
 # User settings
 # Exclude user-specific plists if any, but keep Info.plist
 !Info.plist
