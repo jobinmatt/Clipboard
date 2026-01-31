@@ -85,7 +85,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     
     @objc func toggleLaunchAtLogin(_ sender: NSMenuItem) {
         let launchAgentURL = FileManager.default.homeDirectoryForCurrentUser
-            .appendingPathComponent("Library/LaunchAgents/com.jobinmathew.ClipboardHistory.plist")
+            .appendingPathComponent("Library/LaunchAgents/com.local.ClipboardHistory.plist")
         
         if FileManager.default.fileExists(atPath: launchAgentURL.path) {
             try? FileManager.default.removeItem(at: launchAgentURL)
@@ -102,7 +102,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             <plist version="1.0">
             <dict>
                 <key>Label</key>
-                <string>com.jobinmathew.ClipboardHistory</string>
+                <string>com.local.ClipboardHistory</string>
                 <key>ProgramArguments</key>
                 <array>
                     <string>\(path)</string>
@@ -132,7 +132,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     
     func checkLaunchAtLoginState() -> Bool {
         let launchAgentURL = FileManager.default.homeDirectoryForCurrentUser
-            .appendingPathComponent("Library/LaunchAgents/com.jobinmathew.ClipboardHistory.plist")
+            .appendingPathComponent("Library/LaunchAgents/com.local.ClipboardHistory.plist")
         return FileManager.default.fileExists(atPath: launchAgentURL.path)
     }
 
