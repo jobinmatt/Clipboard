@@ -78,6 +78,11 @@ class ClipboardManager: ObservableObject {
                 newItem = ClipboardItem(type: .image, text: nil, image: firstImage, date: Date())
                 
             } else if let newString = pasteboard.string(forType: .string) {
+                // Prevent empty strings
+                if newString.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                    return
+                }
+                
                 // Check for Text
                 if let last = history.first, last.type == .text, last.text == newString {
                     return 
