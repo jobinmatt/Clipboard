@@ -14,6 +14,7 @@ struct ClipboardHistoryApp: App {
 
 class AppDelegate: NSObject, NSApplicationDelegate {
     var statusBarItem: NSStatusItem!
+    var limitMenuItem: NSMenuItem!
     
     func applicationDidFinishLaunching(_ notification: Notification) {
         // Disable buffering
@@ -50,13 +51,15 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         
         // Limit Submenu
         let limitMenu = NSMenu()
-        let limitItem = NSMenuItem(title: "History Limit", action: nil, keyEquivalent: "")
-        limitItem.submenu = limitMenu
-        menu.addItem(limitItem)
+        let currentLimit = ClipboardManager.shared.limit
+        limitMenuItem = NSMenuItem(title: "History Limit (\(currentLimit))", action: nil, keyEquivalent: "")
+        limitMenuItem.submenu = limitMenu
+        menu.addItem(limitMenuItem)
         
         for l in [50, 100, 200, 500] {
             let item = NSMenuItem(title: "\(l)", action: #selector(setLimit(_:)), keyEquivalent: "")
             item.tag = l
+            item.state = (l == currentLimit) ? .on : .off
             limitMenu.addItem(item)
         }
         
@@ -80,6 +83,19 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     @objc func setLimit(_ sender: NSMenuItem) {
         let newLimit = sender.tag
         ClipboardManager.shared.setLimit(newLimit)
+        
+        // Update Title
+        if let limitMenuItem = limitMenuItem {
+            limitMenuItem.title = "History Limit (\(newLimit))"
+        }
+        
+        // Update Checkmarks
+        if let submenu = limitMenuItem?.submenu {
+            for item in submenu.items {
+                item.state = (item.tag == newLimit) ? .on : .off
+            }
+        }
+        
         print("Limit set to \(newLimit)")
     }
     
