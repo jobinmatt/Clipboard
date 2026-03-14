@@ -59,13 +59,17 @@ class WindowManager: NSObject {
     }
     
     func activateLastApplication() {
-        // In the Zero-Focus model, we don't need to restore focus because we never took it!
-        // We just hide ourselves.
-        NSApp.hide(nil)
+        if let app = lastActiveApplication {
+            app.activate(options: .activateIgnoringOtherApps)
+        } else {
+            NSApp.hide(nil)
+        }
     }
     
     private func showWindowNearCursor() {
         guard let panel = panel else { return }
+        
+        lastActiveApplication = NSWorkspace.shared.frontmostApplication
         
         // ... (Screen clamping logic) ...
         let mouseLocation = NSEvent.mouseLocation
